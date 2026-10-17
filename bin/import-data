@@ -1,0 +1,121 @@
+#!/usr/bin/env python3
+"""import-data: copy your Coach AMA export into this kit's athlete/ folder.
+
+Usage:
+  bin/import-data                 use the newest coach-ama-data*.zip in ~/Downloads
+  bin/import-data <zip-or-folder> use this zip, or an already unzipped folder
+
+Only the coach files are copied (USER.md, PLAN.md, LEARNINGS.md, history_*.md).
+If athlete/ already has files that would change, the whole folder is backed up
+to athlete-backup-<date-time>/ first, so nothing is lost.
+"""
+import datetime
+import glob
+import os
+import re
+import shutil
+import sys
+import tempfile
+import zipfile
+
+KIT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+ATHLETE = os.path.join(KIT, "athlete")
+NAME = re.compile(r"^(USER|PLAN|LEARNINGS|history_[a-z0-9_-]{1,40})\.md$")
+MAX_TOTAL = 16 * 1024 * 1024  # the dashboard export is capped at 8 MiB
+
+
+def die(msg):
+    print(f"import-data: {msg}", file=sys.stderr)
+    sys.exit(2)
+
+
+def find_default():
+    downloads = os.path.expanduser("~/Downloads")
+    found = glob.glob(os.path.join(downloads, "coach-ama-data*.zip"))
+    if not found:
+        die(f"no coach-ama-data*.zip in {downloads}. Download it from "
+            "https://coach-ama.com/dashboard, or pass the file's path.")
+    return max(found, key=os.path.getmtime)
+
+
+def from_zip(path):
+    files, total = {}, 0
+    with zipfile.ZipFile(path) as z:
+        for info in z.infolist():
+            if info.is_dir():
+                continue
+            parts = info.filename.replace("\\", "/").split("/")
+            base = parts[-1]
+            # Expect athlete/<name>.md (or <name>.md at the top); skip anything else.
+            if len(parts) > 2 or (len(parts) == 2 and parts[0] != "athlete") or not NAME.match(base):
+                print(f"  skipped {info.filename}")
+                continue
+            total += info.file_size
+            if total > MAX_TOTAL:
+                die("the zip is larger than any Coach AMA export; not importing it")
+            files[base] = z.read(info)
+    return files
+
+
+def from_folder(path):
+    if os.path.isdir(os.path.join(path, "athlete")):
+        path = os.path.join(path, "athlete")
+    files, total = {}, 0
+    for base in sorted(os.listdir(path)):
+        full = os.path.join(path, base)
+        if not NAME.match(base) or not os.path.isfile(full) or os.path.islink(full):
+            continue
+        total += os.path.getsize(full)
+        if total > MAX_TOTAL:
+            die("the folder is larger than any Coach AMA export; not importing it")
+        with open(full, "rb") as f:
+            files[base] = f.read()
+    return files
+
+
+def main():
+    src = os.path.expanduser(sys.argv[1]) if len(sys.argv) > 1 else find_default()
+    if not os.path.exists(src):
+        die(f"not found: {src}")
+    real = os.path.realpath(src)
+    if real == os.path.realpath(ATHLETE) or real.startswith(os.path.realpath(ATHLETE) + os.sep):
+        die("that is already the kit's athlete/ folder")
+    print(f"Importing from {src}")
+    try:
+        files = from_folder(src) if os.path.isdir(src) else from_zip(src)
+    except zipfile.BadZipFile:
+        die("that file isn't a valid zip; download it again from the dashboard")
+    if not files:
+        die("no coach files (USER.md, PLAN.md, LEARNINGS.md, history_*.md) found there")
+
+    if os.path.islink(ATHLETE):
+        die("athlete/ is a symlink; make it a normal folder first")
+    os.makedirs(ATHLETE, exist_ok=True)
+    for base in files:
+        if os.path.islink(os.path.join(ATHLETE, base)):
+            die(f"athlete/{base} is a symlink; remove it first")
+    changed = []
+    for base, data in files.items():
+        target = os.path.join(ATHLETE, base)
+        if os.path.exists(target):
+            with open(target, "rb") as f:
+                if f.read() != data:
+                    changed.append(base)
+    if changed:
+        stamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+        backup = os.path.join(KIT, f"athlete-backup-{stamp}")
+        shutil.copytree(ATHLETE, backup, symlinks=True)
+        print(f"Backed up the previous athlete/ folder to {os.path.basename(backup)}/")
+
+    for base, data in sorted(files.items()):
+        fd, tmp = tempfile.mkstemp(dir=ATHLETE, prefix=".import-")
+        with os.fdopen(fd, "wb") as f:
+            f.write(data)
+        os.chmod(tmp, 0o644)
+        os.replace(tmp, os.path.join(ATHLETE, base))
+        print(f"  athlete/{base}  ({len(data) // 1024 + 1} KB)")
+    print(f"Done: {len(files)} file(s) in athlete/.")
+
+
+if __name__ == "__main__":
+    main()

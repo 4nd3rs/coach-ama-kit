@@ -1,0 +1,8 @@
+{
+  "category": "WORKOUT",
+  "start_date_local": "2026-10-18T00:00:00",
+  "type": "WeightTraining",
+  "name": "[Coach] Strength (format example — use your assigned library session)",
+  "moving_time": 2700,
+  "description": "Warm-up 8 min\n\n1. Back squat 3×5 @ RIR 2\n2. Romanian deadlift 3×6 @ RIR 2\n3. Split squat 3×8/leg\n4. Calf raise 3×12\n\nProgression: add load when all reps clean at target RIR."
+}

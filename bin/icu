@@ -1,0 +1,168 @@
+#!/usr/bin/env bash
+# icu — tiny intervals.icu API helper for your AI coach (Claude Code / Codex).
+#
+# Needs: curl, and jq (optional, for pretty output).
+# Credentials come from the environment or a .env file next to this kit:
+#   INTERVALS_API_KEY=...   (intervals.icu → Settings → Developer Settings → API key)
+#   INTERVALS_ATHLETE_ID=0  (0 = "the athlete who owns the key"; or your i12345 id)
+#
+# Usage:
+#   bin/icu get  <path> [query...]       e.g. bin/icu get athlete/0/activities oldest=2026-10-01 newest=2026-10-15
+#   bin/icu post <path> <json-file|->    e.g. bin/icu post athlete/0/events workout.json
+#   bin/icu put  <path> <json-file|->
+#   bin/icu delete <path>
+#
+# Shortcuts (dates are YYYY-MM-DD):
+#   bin/icu profile                        athlete profile, zones, FTP/threshold settings
+#   bin/icu activities <oldest> <newest>   completed sessions
+#   bin/icu activity <id>                  one activity incl. intervals
+#   bin/icu wellness <oldest> <newest>     HRV, resting HR, sleep, CTL/ATL/form
+#   bin/icu events <oldest> <newest>       planned workouts, notes, races on the calendar
+#   bin/icu days [n]                       last 7 days + the next n (default 14) with weekdays;
+#                                          read dates off this, never count them in your head
+#
+# Setup:
+#   bin/icu check                          is the key set, accepted, and intervals.icu reachable?
+#   printf '%s\n' "$KEY" | bin/icu set-key  save an API key from stdin into .env (never printed)
+set -euo pipefail
+
+here="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# .env is read as data, never executed, and errors never echo its values.
+load_env() {
+  local line key val n=0
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    n=$((n + 1))
+    line="${line%$'\r'}"
+    [[ "$line" =~ ^[[:space:]]*(#|$) ]] && continue
+    # Grammar: [export ]NAME=value, value bare or quoted, optional trailing # comment.
+    if [[ "$line" =~ ^[[:space:]]*(export[[:space:]]+)?(INTERVALS_API_KEY|INTERVALS_ATHLETE_ID|INTERVALS_BASE_URL)[[:space:]]*=[[:space:]]*(.*)$ ]]; then
+      key="${BASH_REMATCH[2]}"; val="${BASH_REMATCH[3]}"
+      if [[ "$val" =~ ^\"([^\"]*)\"[[:space:]]*(#.*)?$ || "$val" =~ ^\'([^\']*)\'[[:space:]]*(#.*)?$ ]]; then
+        val="${BASH_REMATCH[1]}"
+      elif [[ "$val" =~ ^([^[:space:]\"\'#]*)[[:space:]]*(#.*)?$ ]]; then
+        val="${BASH_REMATCH[1]}"
+      else
+        echo "icu: .env line $n has a value this kit can't read (spaces or stray quotes?); fix it" >&2; continue
+      fi
+      export "$key=$val"
+    else
+      echo "icu: .env line $n isn't a KEY=value setting this kit knows; fix or remove it" >&2
+    fi
+  done < "$here/.env"
+}
+cmd="${1:-help}"
+if [[ "$cmd" != set-key && -f "$here/.env" && ! -L "$here/.env" ]]; then load_env; fi
+
+athlete="${INTERVALS_ATHLETE_ID:-0}"
+base="${INTERVALS_BASE_URL:-https://intervals.icu/api/v1}"
+
+# Request bodies come only from the kit's workouts/ folder (or stdin), so a
+# write can never upload some other local file (like .env) by mistake.
+body_file() {
+  [[ "$1" == "-" ]] && { echo "-"; return; }
+  local dir file
+  dir="$(cd "$here/workouts" && pwd -P)"
+  file="$(cd "$(dirname "$1")" 2>/dev/null && pwd -P)/$(basename "$1")" || true
+  if [[ "$file" != "$dir/"* || ! -f "$file" || "$file" != *.json ]]; then
+    echo "icu: request body must be a .json file inside workouts/ (got: $1)" >&2; exit 2
+  fi
+  echo "$file"
+}
+
+pretty() { if command -v jq >/dev/null; then jq .; else cat; fi; }
+
+call() { # method path [body-file] [query...]
+  : "${INTERVALS_API_KEY:?Set INTERVALS_API_KEY in .env (see README)}"
+  local method="$1" path="${2#/}" body="${3:-}"; shift 3
+  local url="$base/${path//athlete\/0/athlete/$athlete}"
+  local q=""; for kv in "$@"; do q+="${q:+&}$kv"; done
+  [[ -n "$q" ]] && url+="?$q"
+  local args=(-sS --fail-with-body -u "API_KEY:$INTERVALS_API_KEY" -X "$method" "$url")
+  if [[ -n "$body" ]]; then
+    local file; file="$(body_file "$body")" || exit 2
+    args+=(-H "Content-Type: application/json" --data-binary "@$file")
+  fi
+  curl "${args[@]}" | pretty
+}
+
+shift || true
+case "$cmd" in
+  get)        p="$1"; shift; call GET "$p" "" "$@" ;;
+  post)       call POST "$1" "${2:--}" ;;
+  put)        call PUT "$1" "${2:--}" ;;
+  delete)     call DELETE "$1" "" ;;
+  profile)    call GET "athlete/0" "" ;;
+  activities) call GET "athlete/0/activities" "" "oldest=$1" "newest=${2:-$1}" ;;
+  activity)   call GET "activity/$1" "" "intervals=true" ;;
+  wellness)   call GET "athlete/0/wellness" "" "oldest=$1" "newest=${2:-$1}" ;;
+  events)     call GET "athlete/0/events" "" "oldest=$1" "newest=${2:-$1}" ;;
+  days)
+    n="${1:-14}"
+    python3 - "$n" <<'PY'
+import datetime, sys
+today = datetime.date.today()
+for i in range(-7, int(sys.argv[1]) + 1):
+    d = today + datetime.timedelta(days=i)
+    tag = {0: "  <- today", 1: "  <- tomorrow", -1: "  <- yesterday"}.get(i, "")
+    print(f"{d.isoformat()} {d.strftime('%a')}{tag}")
+PY
+    ;;
+  check)
+    if [[ ! -f "$here/.env" ]]; then
+      echo "not set up: no .env file yet (copy .env.example to .env and add your API key)"; exit 3
+    fi
+    if [[ -z "${INTERVALS_API_KEY:-}" ]]; then
+      echo "not set up: .env has no INTERVALS_API_KEY yet"; exit 3
+    fi
+    tmp="$(mktemp)"; trap 'rm -f "$tmp"' EXIT
+    code="$(curl -sS -o "$tmp" -w '%{http_code}' --max-time 20 \
+      -u "API_KEY:$INTERVALS_API_KEY" "$base/athlete/$athlete" 2>/dev/null)" || code=000
+    case "$code" in
+      200)
+        if ! who="$(python3 - "$tmp" 2>/dev/null <<'PY'
+import json, sys
+a = json.load(open(sys.argv[1]))
+import re
+aid = a.get("id") if isinstance(a, dict) else None
+if not isinstance(aid, str) or not re.fullmatch(r"i[0-9]{1,12}", aid):
+    sys.exit(1)
+name = a.get("name")
+if name is not None and not isinstance(name, str):
+    sys.exit(1)
+# Some intervals.icu accounts have no name set; the id alone identifies them.
+print("{} ({})".format(name.strip(), aid) if name and name.strip() else aid)
+PY
+)"; then
+          if ! command -v python3 >/dev/null; then echo "python3 is missing; install it, then run this again"; exit 6; fi
+          echo "intervals.icu answered, but not with an athlete profile; check INTERVALS_ATHLETE_ID=0 in .env"; exit 4
+        fi
+        echo "ok: connected to intervals.icu as $who" ;;
+      401|403) echo "key rejected (HTTP $code): the key is wrong or was revoked; generate a new one"; exit 4 ;;
+      404) echo "athlete not found (HTTP 404): set INTERVALS_ATHLETE_ID=0 in .env"; exit 4 ;;
+      000) echo "can't reach intervals.icu: no internet, or network access is blocked (Codex: allow network access)"; exit 5 ;;
+      *) echo "intervals.icu answered HTTP $code; try again in a minute"; exit 5 ;;
+    esac ;;
+  set-key)
+    IFS= read -r key || true
+    key="${key//[[:space:]]/}"; key="${key#INTERVALS_API_KEY=}"
+    if [[ ! "$key" =~ ^[A-Za-z0-9_-]{10,200}$ ]]; then
+      echo "icu: that doesn't look like an intervals.icu API key (letters and digits only); nothing saved" >&2; exit 2
+    fi
+    if [[ -L "$here/.env" || ( -e "$here/.env" && ! -f "$here/.env" ) ]]; then
+      echo "icu: .env exists but isn't a normal file; remove it, then try again" >&2; exit 2
+    fi
+    id=0
+    if [[ -f "$here/.env" ]]; then
+      id="$(sed -n 's/^INTERVALS_ATHLETE_ID=\([A-Za-z0-9]*\).*/\1/p' "$here/.env" | tail -n 1)"; id="${id:-0}"
+    fi
+    envtmp="$(mktemp "$here/.env.XXXXXX")"; trap 'rm -f "$envtmp"' EXIT
+    chmod 600 "$envtmp"
+    printf '%s\n' \
+      "# intervals.icu → Settings → Developer Settings → API Key (\"Generate\")" \
+      "INTERVALS_API_KEY=$key" \
+      "# 0 = the athlete who owns the key. Or your id from the URL, e.g. i123456" \
+      "INTERVALS_ATHLETE_ID=$id" > "$envtmp"
+    mv -f "$envtmp" "$here/.env"
+    echo "saved the key to .env; now run: bin/icu check" ;;
+  *) awk 'NR>1 && /^#/ {sub(/^# ?/, ""); print; next} NR>1 {exit}' "${BASH_SOURCE[0]}" ;;
+esac

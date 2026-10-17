@@ -1,0 +1,5 @@
+.env
+workouts/*.json
+!workouts/example-*.json
+.env.*
+!.env.example

@@ -1,0 +1,31 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(bin/icu get:*)",
+      "Bash(bin/icu profile:*)",
+      "Bash(bin/icu activities:*)",
+      "Bash(bin/icu activity:*)",
+      "Bash(bin/icu wellness:*)",
+      "Bash(bin/icu events:*)",
+      "Bash(bin/icu days:*)",
+      "Bash(bin/icu help:*)",
+      "Bash(bin/icu check:*)",
+      "Bash(./bin/icu get:*)",
+      "Bash(./bin/icu profile:*)",
+      "Bash(./bin/icu activities:*)",
+      "Bash(./bin/icu activity:*)",
+      "Bash(./bin/icu wellness:*)",
+      "Bash(./bin/icu events:*)",
+      "Bash(./bin/icu days:*)",
+      "Bash(./bin/icu help:*)",
+      "Bash(./bin/icu check:*)",
+      "Read(./athlete/**)",
+      "Edit(./athlete/**)",
+      "Read(./reference/**)",
+      "Write(./workouts/**)"
+    ],
+    "deny": [
+      "Read(./.env)"
+    ]
+  }
+}
