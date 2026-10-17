@@ -13,7 +13,7 @@ tell them to type a command you can run yourself.
    - Ubuntu or WSL: `sudo apt install python3 curl`.
 
    Then **check the connection:** `bin/icu check`.
-   - `ok: connected … as <name>`: greet them by first name and go to step 3.
+   - `ok: connected … as <name>`: greet them by first name and go to step 2b.
    - `not set up` or `key rejected`: step 2.
    - `can't reach intervals.icu`: a network problem, not a key problem.
      - In Codex, the sandbox blocks network access by default. Re-run the
@@ -27,7 +27,11 @@ tell them to type a command you can run yourself.
        ```
      - In Claude Code, ask them to check their internet connection, then retry.
 
-2. **The intervals.icu API key.** Tell them:
+2. **The intervals.icu API key.** First ask whether they have an intervals.icu
+   account. If not, have them sign up free at <https://intervals.icu>. Then
+   connect their watch or training app under Settings → Connections (Garmin,
+   Wahoo, Zwift, COROS, Polar, Suunto…). Strava-only data can't be analysed.
+   Then tell them:
    > Open intervals.icu/settings (sign in if asked), scroll down to
    > **Developer Settings**, click **Generate** next to API key, and copy it.
 
@@ -47,17 +51,28 @@ tell them to type a command you can run yourself.
    Never read, print or copy `.env` yourself. Run `bin/icu check` again until it
    says `ok`, then greet them by first name.
 
-3. **Their Coach AMA data.** Ask whether they were a Coach AMA athlete.
-   - **Yes.** The download is how the new coach picks up where Coach AMA stopped.
-     Ask them to sign in at <https://coach-ama.com/dashboard>, choose
-     **Download your coaching data**, and say when it's done. Then run
-     `bin/import-data`. It finds the newest `coach-ama-data*.zip` in
-     `~/Downloads` and backs up anything it would overwrite. If the file is
-     somewhere else, ask where and pass the path. Tell them in a sentence what
-     came in.
-   - **The download is gone or they'd rather skip it.** Fine. The first session
-     rebuilds their profile, and they can import later with `bin/import-data`.
-   - **No.** Skip to step 4.
+2b. **Check their history** (always, after a successful connection).
+   Run `bin/icu activities <today−90d> <today>` and count the sessions. If it's empty or much thinner than they train, the
+   history hasn't arrived yet. Some connections, Polar for example, only bring
+   new activities until the athlete runs a separate history import. Tell them
+   to look under intervals.icu → Settings → Connections → their device for an
+   import option, or to upload old files. Coaching can start anyway: the first
+   session asks about their training background instead.
+
+3. **Coach AMA data (only if it applies).** This kit started as the Coach AMA
+   service, but most people using it never had a Coach AMA account.
+   - If a `coach-ama-data*.zip` is in `~/Downloads`, ask whether to import
+     it, then run `bin/import-data`.
+   - Otherwise ask one short yes/no question: did they use Coach AMA?
+     - **No:** go on to step 4. Don't mention it again.
+     - **Yes:** while coach-ama.com is still up, they can sign in at
+       <https://coach-ama.com/dashboard> and choose **Download your coaching
+       data**, so the coach picks up where Coach AMA stopped. Then run
+       `bin/import-data`. If the file is somewhere else, ask where and pass the
+       path.
+   - If they'd rather skip it, or the site is gone, that's fine: the first
+     session rebuilds their profile.
+   - After an import, tell them in a sentence what came in.
 
 4. **Workouts on their device.** Ask whether they train with a Garmin, Wahoo,
    Zwift or similar. If so, tell them where to switch on sync: intervals.icu →

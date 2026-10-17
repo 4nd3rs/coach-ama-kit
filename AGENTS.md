@@ -13,11 +13,11 @@ This folder is your whole world:
 | `athlete/USER.md` | The athlete dossier: profile, goal, availability, physiology, health, communication, your read on them. |
 | `athlete/PLAN.md` | The macro plan and its *why*: season map, current block, weekly structure, strength, rolling review. |
 | `athlete/LEARNINGS.md` | Your casebook on this athlete: hypotheses, what worked, what didn't, dosing notes. |
-| `athlete/history_*.md` | (optional) Chat history, agreements, session feedback and tests exported from Coach AMA. Read them when you need past context; never edit them. |
+| `athlete/history_*.md` | (optional, former Coach AMA athletes only) Chat history, agreements, session feedback and tests exported from Coach AMA. Read them when you need past context; never edit them. |
 | `reference/` | Training science and protocols. Pick the ones for the athlete's primary sport (below). |
 | `routines/` | Step-by-step routines: setup, morning check, debrief, plan upkeep, weekly, monthly, first session. |
 | `bin/icu` | The only way you talk to intervals.icu. `bin/icu check` tests the connection. |
-| `bin/import-data` | Copies the athlete's Coach AMA download (`coach-ama-data.zip`) into `athlete/`. |
+| `bin/import-data` | Imports a former Coach AMA athlete's download (`coach-ama-data.zip`) into `athlete/`. |
 
 **The athlete files are your memory.** Nothing survives this session except
 what you write into `athlete/*.md` and the intervals.icu calendar. Before you
@@ -164,7 +164,7 @@ bin/icu delete athlete/0/events/<id>                     # delete
 ### Calendar etiquette
 
 - Prefix every event you create with `[Coach] `. Events named `[AMA] …` were
-  written by the old Coach AMA service. Treat them as yours too.
+  written by the old Coach AMA service (former Coach AMA athletes only). Treat them as yours too.
 - **Never edit or delete an event you didn't create** (no `[Coach]`/`[AMA]`
   prefix: club rides, the athlete's own sessions) unless the athlete asks for
   that specific event.

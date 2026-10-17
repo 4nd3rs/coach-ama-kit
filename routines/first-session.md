@@ -9,7 +9,9 @@ in one sitting. Never re-ask what USER.md already knows.
 1. Read before asking: `bin/icu profile` (FTP, LTHR, weight, thresholds) and
    `bin/icu activities <today−365d> <today>`. Summarise the weekly-volume
    pattern and longest sessions in USER.md → Observed training history. Lead
-   with what you see.
+   with what you see. If the history is empty or much thinner than they say
+   they train, give the history-import advice from `routines/setup.md` step 2b,
+   and ask about their training background instead of guessing from the data.
 2. The athlete: name, birth year, sex (say why in half a clause), primary sport
    and discipline, years of structured training, the goal event and date (look it
    up, pin it as RACE_A), other events.

@@ -1,24 +1,36 @@
-# Your own AI coach: the Coach AMA starter kit
+# Your own AI endurance coach
 
-Coach AMA is closing. This kit lets you keep the same kind of coaching (same
-training science, same plan rules, same intervals.icu calendar) by running the
-coach yourself in **Claude Code** (Anthropic) or **Codex** (OpenAI). Both are
-AI assistants that run on your computer, read files in a folder, and can run
-small commands. This folder is the coach: its instructions, its knowledge,
-your athlete file, and a small tool for talking to intervals.icu.
+An AI coach for cycling, running, triathlon and HYROX that runs on your own
+computer in **Claude Code** (Anthropic) or **Codex** (OpenAI). Both are AI
+assistants that read files in a folder and can run small commands. This folder
+is the coach: its instructions, its training science, your athlete file, and a
+small tool that talks to your [intervals.icu](https://intervals.icu) calendar.
 
-**What you keep:** structured workouts written straight to your intervals.icu
-calendar (and from there to Garmin, Wahoo or Zwift), readiness checks, debriefs,
-10-day plan upkeep, weekly and monthly reviews, race planning, strength sessions,
-and your coaching history if you bring your Coach AMA data (step 3).
+It builds and maintains a periodized plan around your goal and your week. It
+writes structured workouts straight to intervals.icu, and from there to Garmin,
+Wahoo or Zwift. It also does readiness checks, debriefs, 10-day plan upkeep,
+weekly and monthly reviews, race planning and strength sessions.
 
-**What changes:** the coach no longer messages you first. You open it when
-you want it, for example "morning" over coffee or "debrief" after a ride. It
-lives in a terminal or desktop app, not Discord.
+It started as [Coach AMA](https://coach-ama.com), a coaching service that ran
+in Discord. As the service closes, its coaching is opened up here as a kit.
+Anyone can use it, and you don't need to have been a Coach AMA athlete. If you
+were, you can bring your history along (see "Coming from Coach AMA" below).
 
-**Cost:** you need a paid plan for one of the two tools: Claude Pro or Max for
-Claude Code, or a paid ChatGPT plan for Codex. No separate API keys or per-message
-billing. Coaching use is light, so the entry-level plan is usually enough.
+**What you need:**
+- A free [intervals.icu](https://intervals.icu) account with your training
+  synced to it, from Garmin, Wahoo, Zwift, COROS, Polar or Suunto.
+- Claude Code or Codex (below).
+- A Mac or Linux computer. On Windows, use WSL: run `wsl --install` in
+  PowerShell, restart, open **Ubuntu** from the Start menu, and follow the
+  Linux instructions in that window from then on.
+
+**How it works:** you open the coach when you want it, for example "morning"
+over coffee or "debrief" after a ride. It doesn't message you on its own.
+
+**Cost:** Claude Code needs a Claude Pro or Max plan. Codex comes with
+ChatGPT plans; check [OpenAI's pricing](https://chatgpt.com/pricing) for which
+plans include it. There are no separate API keys and no per-message billing.
+Coaching use is light, so the entry-level plan is usually enough.
 
 **Time to set up:** about 10 minutes, and the AI does most of it.
 
@@ -27,26 +39,27 @@ billing. Coaching use is light, so the entry-level plan is usually enough.
 ## Quick setup: let the AI do it
 
 1. **Install Claude Code or Codex** and sign in.
-   - Claude Code: the Claude desktop app's **Code** tab, or
-     `curl -fsSL https://claude.ai/install.sh | bash` (Windows PowerShell:
-     `irm https://claude.ai/install.ps1 | iex`).
-   - Codex: the Codex app, or `curl -fsSL https://chatgpt.com/codex/install.sh | sh`.
+   - Claude Code: on a Mac, the Claude desktop app's **Code** tab works.
+     Otherwise run `curl -fsSL https://claude.ai/install.sh | bash` in a terminal.
+   - Codex: on a Mac, the Codex app works. Otherwise run
+     `curl -fsSL https://chatgpt.com/codex/install.sh | sh` in a terminal.
+   - Windows: use the terminal commands, inside WSL's Ubuntu window.
 2. **Make an empty folder called `coach`** (in your home folder, for example).
-   Open it in the app, or in a terminal:
+   Open it in the app (Mac), or in a terminal:
    `mkdir -p ~/coach && cd ~/coach && claude` (or `codex`).
 3. **Paste this message:**
 
-   > Set up my endurance coach. Download the Coach AMA coach kit from
+   > Set up my endurance coach. Download the coach kit from
    > https://github.com/4nd3rs/coach-ama-kit into this folder, then read
    > AGENTS.md and follow routines/setup.md step by step. Do the technical
    > work yourself and only ask me for what you need.
 
-The AI downloads the kit, checks everything works and imports your Coach AMA
-data. It then offers to run your first session. You do three things yourself,
-because they need your logins:
+The AI downloads the kit, checks that everything works and offers to run your
+first session. In that session it gets to know you, reads your training
+history from intervals.icu and books your first 10 days. You do two things
+yourself, because they need your logins:
 
 - copy your intervals.icu API key when it asks
-- download your data from the Coach AMA dashboard
 - approve the commands it wants to run
 
 Already have the kit? Open its folder and type `/setup` (Claude Code) or say
@@ -82,12 +95,14 @@ Check that it works:
 bin/icu check         # should say "ok: connected to intervals.icu as <you>"
 ```
 
-(Windows: use WSL or Git Bash; the helper is a bash script.)
+(Windows: run all of this inside WSL; the helper is a bash script.)
 
-## 3. Bring your Coach AMA data
+## 3. Coming from Coach AMA (optional)
 
-Sign in at <https://coach-ama.com/dashboard> and use **Download your coaching
-data**. You get `coach-ama-data.zip`, which holds:
+Former Coach AMA athletes only. Everyone else can skip this step.
+
+While coach-ama.com is still up, sign in at <https://coach-ama.com/dashboard>
+and use **Download your coaching data**. You get `coach-ama-data.zip`, which holds:
 
 | File | What it is |
 |------|------------|
@@ -108,9 +123,7 @@ Your new coach then starts where Coach AMA left off: your goals, your plan,
 what works for you. The download stays available for a while after Coach AMA
 closes, then everything is deleted, so grab it in time.
 
-No files? Skip this step. The coach runs a short first session to get to know
-you and reads your training history from intervals.icu itself. You can import
-the files later.
+During AI setup, the coach asks about this and imports the zip for you.
 
 ## 4a. Run it with Claude Code
 
@@ -120,8 +133,8 @@ Install (macOS / Linux / WSL):
 curl -fsSL https://claude.ai/install.sh | bash
 ```
 
-Windows PowerShell: `irm https://claude.ai/install.ps1 | iex`. Or use the
-Claude desktop app's **Code** tab and open the coach folder there.
+On Windows, run it inside WSL (see "What you need"). On a Mac you can also use
+the Claude desktop app's **Code** tab and open the coach folder there.
 
 Start it inside the kit folder and sign in with your Claude account:
 
@@ -137,7 +150,7 @@ That prompt is your final OK. Type commands, or just talk:
 
 | Type | What happens |
 |------|-------------|
-| `/setup` | Check the connection, import your Coach AMA data, get started |
+| `/setup` | Check the connection and get started (and import Coach AMA data, if you have it) |
 | `/first-session` | Onboarding: the coach gets to know you and books your first 10 days |
 | `/morning` | Readiness check plus today's session, adjusted if needed |
 | `/debrief` | Review of your latest session (add a note: `/debrief legs felt heavy`) |
@@ -177,12 +190,12 @@ review"*, *"let's do the first session"*, *"set me up"*. The coach finds the mat
 
 ## 5. How to use it well
 
-- **Talk to it like you talked to Coach AMA.** Short messages work. Tell it
+- **Talk to it like a coach.** Short messages work. Tell it
   how sessions felt, when life gets busy, when something hurts.
 - **It shows changes before writing them.** Before creating, moving or deleting
   calendar workouts, the coach lists the change and waits for your OK. "Go ahead"
   is enough. It only edits its own workouts (named `[Coach] …`, or `[AMA] …`
-  from Coach AMA), never your club rides or your own entries, unless you ask.
+  if you came from Coach AMA), never your club rides or your own entries, unless you ask.
 - **Its memory is the `athlete/` folder.** `USER.md` (you), `PLAN.md` (the
   plan and why), `LEARNINGS.md` (what works for you). They're plain text, so read
   and correct them whenever you like. Back the folder up; if you lose it, the
@@ -209,7 +222,7 @@ then open the coach to apply anything.
 ## Your data and privacy
 
 - Your training data goes from intervals.icu to Anthropic or OpenAI under
-  **your own** account and their terms. Coach AMA is no longer in the loop.
+  **your own** account and their terms. Nobody else is in the loop.
 - Your API key stays in `.env` on your machine. The coach is told never to read
   that file, and Claude Code also blocks its file reader from opening it. Only
   `bin/icu` uses the key. During setup you can paste the key into the chat (it's then in that
@@ -222,11 +235,11 @@ then open the coach to apply anything.
 ```
 AGENTS.md           the coach: persona, rules, how to use intervals.icu (Codex reads this)
 CLAUDE.md           tells Claude Code to load AGENTS.md
-athlete/            YOUR files: USER.md, PLAN.md, LEARNINGS.md (+ history_*.md from Coach AMA)
+athlete/            YOUR files: USER.md, PLAN.md, LEARNINGS.md (+ history_*.md if imported from Coach AMA)
 reference/          training science per sport, the pro-coach playbooks, the strength library
 routines/           setup, morning, debrief, plan, weekly, monthly, first-session
 bin/icu             tiny intervals.icu API helper (bash + curl); `bin/icu check` tests the setup
-bin/import-data     copies your Coach AMA download into athlete/
+bin/import-data     imports a Coach AMA download into athlete/ (former Coach AMA athletes)
 workouts/           where the coach drafts workouts before posting them (+ format examples)
 .claude/            slash commands and permissions for Claude Code
 ```
@@ -245,4 +258,4 @@ workouts/           where the coach drafts workouts before posting them (+ forma
 | Activities have no power or HR | They came from Strava, which intervals.icu can't share. Connect your head unit directly in intervals.icu → Connections. |
 | `python3: command not found` | `bin/icu days` and `bin/import-data` need it. macOS: `xcode-select --install`. Ubuntu/WSL: `sudo apt install python3`. |
 
-Thanks for training with Coach AMA. Questions about the kit: reply in your Coach AMA channel before it closes.
+The coaching here comes from Coach AMA. Train well.
