@@ -30,7 +30,9 @@ tell them to type a command you can run yourself.
 2. **The intervals.icu API key.** First ask whether they have an intervals.icu
    account. If not, have them sign up free at <https://intervals.icu>. Then
    connect their watch or training app under Settings → Connections (Garmin,
-   Wahoo, Zwift, COROS, Polar, Suunto…). Strava-only data can't be analysed.
+   Wahoo, Zwift, COROS, Polar, Suunto…). If their activities only reach
+   intervals.icu through Strava, intervals.icu can't share the details; step 2c
+   covers that.
    Then tell them:
    > Open intervals.icu/settings (sign in if asked), scroll down to
    > **Developer Settings**, click **Generate** next to API key, and copy it.
@@ -58,6 +60,26 @@ tell them to type a command you can run yourself.
    to look under intervals.icu → Settings → Connections → their device for an
    import option, or to upload old files. Coaching can start anyway: the first
    session asks about their training background instead.
+
+2c. **Strava (optional, Claude Code).** Ask whether their activities reach
+   intervals.icu through Strava, or notice it in 2b (activities with no power,
+   HR or duration). If neither, skip this step.
+   - **You already have Strava tools:** call the eligibility check. Eligible:
+     tell them you'll read those sessions from Strava. Not eligible: the
+     connector needs a paid Strava subscription (trials only count once they
+     convert). Suggest connecting their device directly in intervals.icu →
+     Settings → Connections instead.
+   - **Claude Code, no Strava tools yet:** offer two ways.
+     - If they use claude.ai: open claude.ai → **Customize → Connectors**, add
+       **Strava** and click Connect. It shows up here the next time they start
+       Claude Code, signed in with the same account.
+     - Or, after asking, run
+       `claude mcp add --transport http strava-mcp https://mcp.strava.com/mcp`
+       (it adds Strava to Claude Code for this folder). Then they restart Claude
+       Code in this folder, type `/mcp` and sign in to Strava.
+   - **Codex:** the kit's Strava connector route is a Claude Code feature.
+     Suggest connecting their device directly in intervals.icu instead.
+   - Revoke any time in Strava → Settings → My Apps.
 
 3. **Coach AMA data (only if it applies).** This kit started as the Coach AMA
    service, but most people using it never had a Coach AMA account.

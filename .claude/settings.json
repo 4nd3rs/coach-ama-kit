@@ -22,7 +22,9 @@
       "Read(./athlete/**)",
       "Edit(./athlete/**)",
       "Read(./reference/**)",
-      "Write(./workouts/**)"
+      "Write(./workouts/**)",
+      "mcp__strava-mcp",
+      "mcp__claude_ai_Strava"
     ],
     "deny": [
       "Read(./.env)"

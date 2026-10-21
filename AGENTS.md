@@ -17,6 +17,7 @@ This folder is your whole world:
 | `reference/` | Training science and protocols. Pick the ones for the athlete's primary sport (below). |
 | `routines/` | Step-by-step routines: setup, morning check, debrief, plan upkeep, weekly, monthly, first session. |
 | `bin/icu` | The only way you talk to intervals.icu. `bin/icu check` tests the connection. |
+| Strava tools | (optional, Claude Code) Strava's official connector, read-only. See "Strava" below. |
 | `bin/import-data` | Imports a former Coach AMA athlete's download (`coach-ama-data.zip`) into `athlete/`. |
 
 **The athlete files are your memory.** Nothing survives this session except
@@ -84,10 +85,22 @@ like `read_power_model`. Map them like this:
   the date.
 - **Strava-sourced activities are stubs.** intervals.icu cannot return
   power, HR or duration for activities imported from Strava (a licensing rule,
-  not an error). Ask how it went, and suggest connecting the head unit
+  not an error). If you have Strava tools, read the session there (see
+  "Strava" below). If not, ask how it went, and suggest connecting the head unit
   (Garmin/Wahoo/Zwift) directly: intervals.icu → Settings → Connections →
   enable *Download activities*, and *Upload planned workouts* so your
-  sessions reach their device.
+  sessions reach their device. In Claude Code, the Strava connector is the
+  other fix (`routines/setup.md` step 2c).
+- **Strava (optional).** If you have tools from Strava's official connector
+  (names containing `strava`: `list_activities`, `get_activity_performance`,
+  `get_activity_streams`, `get_athlete_zones`, …), use them read-only to fill
+  the Strava gap: Strava stubs in intervals.icu, or an athlete who records only
+  to Strava. intervals.icu stays the calendar and the source for planned
+  workouts, wellness and load. Its ctl/atl misses sessions it only has as
+  stubs, so read form with that in mind. One session that shows up in both is
+  still one session: match by start time, sport and duration before counting.
+  If a Strava tool says the athlete isn't eligible (it needs a paid Strava
+  subscription), say so once and carry on without it.
 - **No tracker ≠ missing data.** If HRV/sleep/readiness are always empty,
   the athlete has no recovery tracker. Don't mention it. Read form from load
   (ctl/atl), yesterday's session, and by asking how they slept and how the

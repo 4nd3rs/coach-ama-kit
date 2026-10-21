@@ -1,7 +1,7 @@
 # Your own AI endurance coach
 
 An AI coach for cycling, running, triathlon and HYROX that runs on your own
-computer in **Claude Code** (Anthropic) or **Codex** (OpenAI). Both are AI
+computer in **Claude Code** (Anthropic, recommended) or **Codex** (OpenAI). Both are AI
 assistants that read files in a folder and can run small commands. This folder
 is the coach: its instructions, its training science, your athlete file, and a
 small tool that talks to your [intervals.icu](https://intervals.icu) calendar.
@@ -27,6 +27,11 @@ were, you can bring your history along (see "Coming from Coach AMA" below).
 **How it works:** you open the coach when you want it, for example "morning"
 over coffee or "debrief" after a ride. It doesn't message you on its own.
 
+**Why Claude Code:** it can also read your Strava activities through
+Strava's official connector (needs a paid Strava subscription). That matters
+if your rides or runs reach intervals.icu through Strava, because intervals.icu
+can't share their power, heart rate or duration. Codex works for everything else.
+
 **Cost:** Claude Code needs a Claude Pro or Max plan. Codex comes with
 ChatGPT plans; check [OpenAI's pricing](https://chatgpt.com/pricing) for which
 plans include it. There are no separate API keys and no per-message billing.
@@ -38,7 +43,7 @@ Coaching use is light, so the entry-level plan is usually enough.
 
 ## Quick setup: let the AI do it
 
-1. **Install Claude Code or Codex** and sign in.
+1. **Install Claude Code** (recommended) **or Codex** and sign in.
    - Claude Code: on a Mac, the Claude desktop app's **Code** tab works.
      Otherwise run `curl -fsSL https://claude.ai/install.sh | bash` in a terminal.
    - Codex: on a Mac, the Codex app works. Otherwise run
@@ -159,6 +164,27 @@ That prompt is your final OK. Type commands, or just talk:
 | `/monthly` | Honest 4–5 week audit and what changes |
 | anything else | "Can I move Thursday's intervals to Friday?", "I'm sick", "I signed up for Vätternrundan" |
 
+### Optional: connect Strava
+
+If your activities reach intervals.icu through Strava, intervals.icu can't
+share their power, heart rate or duration. With a paid Strava subscription,
+Claude Code can read them directly through Strava's official connector. It's
+read-only: it can't change anything on Strava.
+
+- **Easiest:** on [claude.ai](https://claude.ai), open **Customize →
+  Connectors**, add **Strava** and connect. It's then available in Claude Code
+  when you're signed in with the same account.
+- **Or** in the coach folder:
+
+  ```bash
+  claude mcp add --transport http strava-mcp https://mcp.strava.com/mcp
+  ```
+
+  Start `claude` again, type `/mcp` and sign in to Strava.
+
+The setup routine offers this too. Strava trial accounts get access once the
+trial converts. Revoke any time in Strava → Settings → My Apps.
+
 ## 4b. Run it with Codex
 
 Install (macOS / Linux):
@@ -221,8 +247,9 @@ then open the coach to apply anything.
 
 ## Your data and privacy
 
-- Your training data goes from intervals.icu to Anthropic or OpenAI under
-  **your own** account and their terms. Nobody else is in the loop.
+- Your training data goes from intervals.icu (and Strava, if you connect it)
+  to Anthropic or OpenAI under **your own** account and their terms. Nobody
+  else is in the loop.
 - Your API key stays in `.env` on your machine. The coach is told never to read
   that file, and Claude Code also blocks its file reader from opening it. Only
   `bin/icu` uses the key. During setup you can paste the key into the chat (it's then in that
@@ -255,7 +282,7 @@ workouts/           where the coach drafts workouts before posting them (+ forma
 | Workouts show up as plain text, not steps | Ask the coach to re-write the workout as structured steps. The step syntax is in AGENTS.md. |
 | A workout's zone or pace looks wrong | Usually the label trap: a bare "Z2" or "60%" in a step label. Ask the coach to check the label rules. |
 | Workouts don't reach Garmin, Wahoo or Zwift | intervals.icu → Settings → Connections → your device → enable **Upload planned workouts**. |
-| Activities have no power or HR | They came from Strava, which intervals.icu can't share. Connect your head unit directly in intervals.icu → Connections. |
+| Activities have no power or HR | They came from Strava, which intervals.icu can't share. Connect your head unit directly in intervals.icu → Connections, or connect Strava in Claude Code (section 4a). |
 | `python3: command not found` | `bin/icu days` and `bin/import-data` need it. macOS: `xcode-select --install`. Ubuntu/WSL: `sudo apt install python3`. |
 
 The coaching here comes from Coach AMA. Train well.
